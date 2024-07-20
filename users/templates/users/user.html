@@ -1,0 +1,72 @@
+{% extends 'layouts/box.html' %}
+
+{% block title %}{{ request.user }}{% endblock %}
+
+{% block content %}
+<h1>{{user.request.nickname}}</h1>
+<div class="container-fluid px-0">
+    <div class="row justify-content-center no-gutters">
+        <div class="col-lg-10 px-2 text-center">
+            <img src="{{ player.avatar.url }}" alt="Avatar" class="rounded-circle mx-auto d-block mb-3" style="width: 20%; height: auto;">
+            <h1>{{ player.nickname }}</h1>
+            <div class="d-flex justify-content-center mt-3">
+                <a id="add-friend-btn" href="#" class="btn btn-outline-primary mr-2" title="Add Friend">
+                    <i class="fas fa-user-plus fa-2x"></i>
+                </a>
+                <a href="#" class="btn btn-outline-primary mr-2" title="Invite to Clan">
+                    <i class="fas fa-users-cog fa-2x"></i>
+                </a>
+                <a href="#" class="btn btn-outline-primary" title="Send Message">
+                    <i class="fas fa-envelope fa-2x"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Structure -->
+<div class="modal fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">Message</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modalMessageBody">
+                <!-- Message will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const fromUserId = {{ request.user.id }};
+    const toUserId = {{ player.user.id }};
+    const socket = new WebSocket('ws://' + window.location.host + '/ws/friend_request/');
+
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        showModal(data.message);
+    };
+
+    document.getElementById("add-friend-btn").onclick = function(e) {
+        e.preventDefault();
+        const action = "send_request";
+        socket.send(JSON.stringify({
+            'action': action,
+            'from_user': fromUserId,
+            'to_user': toUserId
+        }));
+    };
+
+    function showModal(message) {
+        document.getElementById('modalMessageBody').innerText = message;
+        $('#messageModal').modal('show');
+    }
+</script>
+{% endblock %}

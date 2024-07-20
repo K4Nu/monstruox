@@ -1,0 +1,86 @@
+{% extends 'layouts/box.html' %}
+
+{% load widget_tweaks %}
+
+{% block title %}Clan Form{% endblock %}
+
+{% block content %}
+    <h1>Clan Form</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+            {{ form.name|add_class:"form-control" }}
+            {% if form.name.errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.name.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.motto.id_for_label }}">{{ form.motto.label }}</label>
+            {{ form.motto|add_class:"form-control" }}
+            {% if form.motto.errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.motto.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+            {{ form.description|add_class:"form-control" }}
+            <small id="description-char-count" class="form-text text-muted">Characters: 0</small>
+            {% if form.description.errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.description.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.emblem.id_for_label }}">{{ form.emblem.label }}</label>
+            {{ form.emblem|add_class:"form-control-file" }}
+            {% if form.emblem.errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.emblem.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="form-group form-check">
+            {{ form.emblem_clear }}
+            <label class="form-check-label" for="{{ form.emblem_clear.id_for_label }}">{{ form.emblem_clear.label }}</label>
+            {% if form.emblem_clear.errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.emblem_clear.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const descriptionField = document.querySelector('#id_description');
+            const charCountDisplay = document.getElementById('description-char-count');
+
+            function updateCharCount() {
+                const charCount = descriptionField.value.length;
+                charCountDisplay.textContent = 'Characters: ' + charCount;
+            }
+
+            descriptionField.addEventListener('input', updateCharCount);
+
+            // Initialize character count on page load
+            updateCharCount();
+        });
+    </script>
+{% endblock %}

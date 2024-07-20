@@ -1,0 +1,63 @@
+{% extends 'layouts/box.html' %}
+
+{% load widget_tweaks %}
+
+{% block title %}Player Form{% endblock %}
+
+{% block content %}
+    <h1>Player Form</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{ form.nickname.id_for_label }}">{{ form.nickname.label }}</label>
+            {{ form.nickname|add_class:"form-control" }}
+            {% if form.nickname.errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.nickname.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.bio.id_for_label }}">{{ form.bio.label }}</label>
+            {{ form.bio|add_class:"form-control" }}
+            {% if form.bio.errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.bio.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.avatar.id_for_label }}">{{ form.avatar.label }}</label>
+            {{ form.avatar|add_class:"form-control-file" }}
+            {% if form.avatar.errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.avatar.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.image_clear.id_for_label }}">{{ form.image_clear.label }}</label>
+            {{ form.image_clear }}
+            {% if form.image_clear.errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.image_clear.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    <style>
+        .custom-clearable-file-input .clearable-file-input-clear,
+        .custom-clearable-file-input .clearable-file-input-initial {
+            display: none;
+        }
+    </style>
+{% endblock %}

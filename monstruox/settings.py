@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -107,6 +108,7 @@ ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = True
 ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL="/"
+LOGIN_URL = '/accounts/login/'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': [

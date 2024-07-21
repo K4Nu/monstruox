@@ -48,9 +48,9 @@
                             </div>
                         </a>
                     </li>
-                <li class="nav-item" style="display: flex; align-items: center; color:black">
+                    <li class="nav-item" style="display: flex; align-items: center; color:black">
                         <a class="nav-link" href="#">Balance : {{user.player.credits}}</a>
-                </li>
+                    </li>
                     <!-- Avatar Dropdown -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -95,10 +95,32 @@
         {% endblock layout %}
     </div>
 
-    <!-- Include Bootstrap JS and dependencies -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
+    <script>
+        const userId = {{ request.user.player.id }};
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const friendRequestSocket = new WebSocket(`${protocol}://${window.location.host}/ws/friend_requests/${userId}/`);
+
+        friendRequestSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            if (data.type === "friend_request_notification") {
+                alert(`New friend request from user ${data.sender_id}`);
+            }
+        };
+
+        function sendFriendRequest(senderId, receiverId) {
+            friendRequestSocket.send(JSON.stringify({
+                "action": "send_friend_request",
+                "sender_id": senderId,
+                "receiver_id": receiverId
+            }));
+        }
+    </script>
+
+    {% block scripts %}
+    {% endblock scripts %}
 </body>
 </html>

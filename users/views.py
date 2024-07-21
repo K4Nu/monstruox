@@ -1,15 +1,16 @@
 import os.path
 from django.conf import settings
 from django.shortcuts import render,redirect
-from allauth.account.signals import user_signed_up
 from django.dispatch import receiver
 from django.contrib.auth.decorators import login_required
-from .models import Player,Clan
+from .models import Player,Clan,FriendRequest
 from django.contrib.auth.models import User
 from .forms import PlayerForm,ClanForm
 from django.core.exceptions import ObjectDoesNotExist
 from PIL import Image
-
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.db import transaction
 def index(request):
     return render(request,"users/index.html")
 
@@ -99,3 +100,40 @@ def user(request,nickname):
     if user==request.user.player:
         return redirect('profile')
     return render(request,"users/user.html",{"player":player})
+
+@login_required
+def send_friend_request(request, receiver_id):
+    sender = request.user.player
+    receiver = get_object_or_404(Player,id=receiver_id)
+    if request.method=="POST":
+        if sender!=receiver:
+            new_request=FriendRequest(sender=sender,receiver=receiver)
+            new_request.save()
+            return JsonResponse({"status":"success","message":"Friend request has been sent"})
+        else:
+            return JsonResponse({"status":"error","message":"You can't send friend request to yourself"})
+    return JsonResponse({"status": "failed", "message": "Invalid request method"}, status=405)
+@login_required
+@transaction.atomic
+def accept_friend_request(request,request_id):
+    friend_request=get_object_or_404(FriendRequest,id=request_id)
+    if request.method=="POST":
+        if friend_request.receiver!=request.user.player:
+            return JsonResponse({"status": "failed", "message": "You are not authorized to accept this friend request"},status=403)
+        if friend_request.receiver!=friend_request.sender:
+            friend_request.receiver.add_friend(friend_request.sender)
+            friend_request.delete()
+            return JsonResponse({"status":"accepted"})
+        return JsonResponse({"status":"error","message":"You cant send yourself a friend request"})
+    return JsonResponse({"status":"failed"},status=400)
+
+@login_required
+@transaction.atomic
+def reject_friend_request(request,request_id):
+    friend_request = get_object_or_404(FriendRequest, id=request_id)
+    if request.method == "POST":
+        if friend_request.receiver!=request.user.player:
+            return JsonResponse({"status": "failed", "message": "You are not authorized to accept this friend request"},status=403)
+        friend_request.delete()
+        return JsonResponse({"status":"accepted"})
+    return JsonResponse({"status": "failed"}, status=400)

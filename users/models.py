@@ -34,6 +34,12 @@ class Player(models.Model):
     def __str__(self):
         return self.nickname
 
+    def add_friend(self,friend):
+        self.friends.add(friend)
+        friend.friends.add(self)
+
+
+
 class FriendRequest(models.Model):
     sender = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='sent_friend_requests')
     receiver = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='received_friend_requests')

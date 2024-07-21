@@ -1,18 +1,23 @@
-{% extends 'layouts/box.html' %}
+{% extends 'base.html' %}
 
-{% block title %}{{ request.user }}{% endblock %}
+{% block head_title %}{{ player.nickname }}{% endblock head_title %}
 
-{% block content %}
-<h1>{{user.request.nickname}}</h1>
+{% block layout %}
 <div class="container-fluid px-0">
     <div class="row justify-content-center no-gutters">
         <div class="col-lg-10 px-2 text-center">
             <img src="{{ player.avatar.url }}" alt="Avatar" class="rounded-circle mx-auto d-block mb-3" style="width: 20%; height: auto;">
             <h1>{{ player.nickname }}</h1>
             <div class="d-flex justify-content-center mt-3">
+                {% if player not in request.user.player.friends.all %}
                 <a id="add-friend-btn" href="#" class="btn btn-outline-primary mr-2" title="Add Friend">
                     <i class="fas fa-user-plus fa-2x"></i>
                 </a>
+                {% else %}
+                <a title="Friends">
+                    <i class="bi bi-check-square fa-2x"></i>
+                </a>
+                {% endif %}
                 <a href="#" class="btn btn-outline-primary mr-2" title="Invite to Clan">
                     <i class="fas fa-users-cog fa-2x"></i>
                 </a>
@@ -24,49 +29,71 @@
     </div>
 </div>
 
-<!-- Modal Structure -->
-<div class="modal fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<!-- Modal -->
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="messageModalLabel">Message</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <h4 class="modal-title">Friend Request</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
-            <div class="modal-body" id="modalMessageBody">
-                <!-- Message will be injected here -->
+            <div class="modal-body">
+                <p id="modal-message"></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
 </div>
+{% endblock layout %}
 
+{% block scripts %}
 <script>
-    const fromUserId = {{ request.user.id }};
-    const toUserId = {{ player.user.id }};
-    const socket = new WebSocket('ws://' + window.location.host + '/ws/friend_request/');
+    document.addEventListener('DOMContentLoaded', function() {
+        const addFriendBtn = document.getElementById('add-friend-btn');
+        if (addFriendBtn) {  // Check if the button exists to avoid errors if it is not rendered
+            const userId = {{ request.user.player.id }};
+            const playerToAddId = {{ player.id }};  // ID of the player to whom the friend request will be sent
 
-    socket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
-        showModal(data.message);
-    };
+            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            const friendRequestSocket = new WebSocket(`${protocol}://${window.location.host}/ws/friend_requests/${userId}/`);
 
-    document.getElementById("add-friend-btn").onclick = function(e) {
-        e.preventDefault();
-        const action = "send_request";
-        socket.send(JSON.stringify({
-            'action': action,
-            'from_user': fromUserId,
-            'to_user': toUserId
-        }));
-    };
+            friendRequestSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                if (data.type === "friend_request_notification") {
+                    if (data.sender_id == data.receiver_id) {
+                        showModalMessage("You can't send a friend request to yourself!");
+                        return;
+                    }
+                    alert(`New friend request from ${data.sender_username}`);
+                }
+            };
 
-    function showModal(message) {
-        document.getElementById('modalMessageBody').innerText = message;
-        $('#messageModal').modal('show');
-    }
+            function sendFriendRequest(senderId, receiverId) {
+                if (senderId === receiverId) {
+                    showModalMessage("You can't send a friend request to yourself!");
+                    return;
+                }
+                friendRequestSocket.send(JSON.stringify({
+                    "action": "send_friend_request",
+                    "sender_id": senderId,
+                    "receiver_id": receiverId
+                }));
+                showModalMessage("Friend request sent successfully!");
+            }
+
+            function showModalMessage(message) {
+                document.getElementById('modal-message').textContent = message;
+                $('#myModal').modal('show');
+            }
+
+            addFriendBtn.addEventListener('click', function(event) {
+                event.preventDefault();
+                sendFriendRequest(userId, playerToAddId);
+            });
+        }
+    });
 </script>
-{% endblock %}
+{% endblock scripts %}
